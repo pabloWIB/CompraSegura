@@ -1,5 +1,5 @@
-CREATE DATABASE negocioseguro;
-USE negocioseguro;
+CREATE DATABASE compraseguras;
+USE compraseguras;
 
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
