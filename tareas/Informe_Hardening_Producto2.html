@@ -50,10 +50,8 @@
   <div class="titulo">Informe de Hardening: implementación y verificación de defensa en profundidad contra la inyección SQL en el sistema NegocioSeguro</div>
   <div class="sub">Producto 2. Prevención contra la Inyección SQL</div>
   <div class="meta">
-    <b>Integrantes:</b><br>
-    Pablo Nieto Pérez<br>
-    [Nombre completo del integrante 2]<br>
-    [Nombre completo del integrante 3]<br><br>
+    <b>Presentado por:</b><br>
+    Pablo Nieto Pérez<br><br>
     <b>Docente:</b> Sergio Pinilla Valencia<br>
     Manizales, 22 de octubre de 2026
   </div>
@@ -95,7 +93,7 @@
 <!-- ===================== 1 ===================== -->
 <div class="page-break"></div>
 <h2>1. Introducción</h2>
-<p>Este informe es la continuación de la Tarea 4, en la que habíamos auditado la aplicación NegocioSeguro (la misma Compra Segura que venimos usando en el curso) y habíamos reproducido en local varios ataques de inyección SQL siguiendo el OWASP Top 10. Allí dejamos el sistema diagnosticado; ahora lo que toca es la otra mitad del trabajo, que es taparle esos huecos y, sobre todo, comprobar que de verdad quedaron tapados.</p>
+<p>Este informe es la continuación de la Tarea 4, en la que había auditado la aplicación NegocioSeguro (la misma Compra Segura que vengo usando en el curso) y había reproducido en local varios ataques de inyección SQL siguiendo el OWASP Top 10. Allí dejé el sistema diagnosticado; ahora lo que toca es la otra mitad del trabajo, que es taparle esos huecos y, sobre todo, comprobar que de verdad quedaron tapados.</p>
 <p>La idea de fondo que seguí es la de defensa en profundidad, que básicamente es no confiar todo a una sola barrera sino poner varias capas que se respalden entre sí. Trabajé tres: darle a la aplicación un usuario de base de datos con los permisos justos (mínimo privilegio), validar lo que entra por los formularios con una lista blanca, y cambiar todas las consultas para que usen sentencias preparadas con parámetros en vez de pegar el texto del usuario dentro del SQL. El marco de referencia sigue siendo el OWASP Top 10:2021, en particular la categoría A03 (Inyección), y para la parte de buenas prácticas de seguridad me apoyo en ISO/IEC 27002.</p>
 <p>El documento está organizado como pide la plantilla: primero los objetivos y la justificación, luego el desarrollo, que es la parte larga y donde va el grueso del trabajo (el estado inicial, las cinco correcciones archivo por archivo, la matriz de verificación y el análisis), después la discusión y las conclusiones, y al final la bibliografía y los anexos con el código completo. Una aclaración importante: todo esto se hizo en un entorno de pruebas local (XAMPP), sobre una aplicación hecha a propósito para ser insegura, así que no hay ningún riesgo ni dato real de por medio.</p>
 
@@ -113,7 +111,7 @@
 
 <!-- ===================== 3 ===================== -->
 <h2>3. Justificación</h2>
-<p>NegocioSeguro maneja justo lo que un atacante querría: las credenciales de los usuarios y los datos de los pedidos. En la Tarea 4 demostramos que con una sola línea escrita en el buscador se podían sacar todas las contraseñas, y que el precio de un pedido se podía cambiar desde el navegador. Diagnosticar eso ya está hecho; lo que da valor ahora es cerrarlo y, más importante todavía, no quedarnos en el «ya lo corregí» sino probar que el ataque efectivamente dejó de funcionar.</p>
+<p>NegocioSeguro maneja justo lo que un atacante querría: las credenciales de los usuarios y los datos de los pedidos. En la Tarea 4 demostré que con una sola línea escrita en el buscador se podían sacar todas las contraseñas, y que el precio de un pedido se podía cambiar desde el navegador. Diagnosticar eso ya está hecho; lo que da valor ahora es cerrarlo y, más importante todavía, no quedarme en el «ya lo corregí» sino probar que el ataque efectivamente dejó de funcionar.</p>
 <p>Elegí el marco OWASP porque la A03 (Inyección) es exactamente el fallo que tiene la aplicación, y lo complementé con la lógica de mínimo privilegio de ISO/IEC 27002, que es la idea de no darle a un componente más permisos de los que necesita. Trabajarlo en local, sobre una app vulnerable a propósito, deja ver el daño real y a la vez comprobar la corrección sin poner en riesgo a nadie, que es para lo que sirve el ejercicio.</p>
 
 <!-- ===================== 4 ===================== -->
@@ -132,7 +130,7 @@
   <tr><td>Ubicación del respaldo</td><td><code>C:\xampp\htdocs\compraseguras_backup</code> y la etiqueta <code>antes-producto2</code> en el historial de Git.</td></tr>
   <tr><td>Estado inicial confirmado</td><td>Antes de tocar nada, repetí los payloads sobre la copia original y todos seguían funcionando: el login se saltaba con la tautología, el buscador soltaba las credenciales por UNION y el error de <code>extractvalue</code> mostraba la versión del motor (<span class="pay">~10.4.32-MariaDB</span>), y el pedido aceptaba un precio puesto por el cliente. Esto fija la línea base de comparación.</td></tr>
 </table>
-<p>La base <code>compraseguras</code> tiene las tres tablas de siempre (usuarios, productos, pedidos) con sus datos de ejemplo. Aclaro un detalle de nombres: la guía habla de la base «negocioseguro», pero en nuestro proyecto la base se llama <code>compraseguras</code> (es la misma app), así que todos los comandos y cadenas de conexión usan ese nombre real; el usuario restringido sí lo dejé como pide la guía, <code>negocioseguro_app</code>.</p>
+<p>La base <code>compraseguras</code> tiene las tres tablas de siempre (usuarios, productos, pedidos) con sus datos de ejemplo. Aclaro un detalle de nombres: la guía habla de la base «negocioseguro», pero en mi proyecto la base se llama <code>compraseguras</code> (es la misma app), así que todos los comandos y cadenas de conexión usan ese nombre real; el usuario restringido sí lo dejé como pide la guía, <code>negocioseguro_app</code>.</p>
 
 <h3>4.3 Implementación de las capas de defensa</h3>
 <p>Lo que sigue es, archivo por archivo, qué se corrigió y con qué prueba lo confirmé. Las capas no van por separado: varias se combinan en un mismo archivo.</p>
@@ -247,7 +245,7 @@
 
 <h3>4.7 Respuestas a las tres preguntas de auditoría interna</h3>
 <h4>Pregunta 1. Análisis de caso en pedido.php</h4>
-<p>En <code>pedido.php</code> se juntaban dos fallos de naturaleza distinta y la refactorización los cerró con dos medidas distintas aplicadas en el mismo archivo. El primero es la inyección SQL: el INSERT pegaba <code>producto_id</code> y <code>cantidad</code> dentro de la consulta, y eso se cierra con la consulta preparada (<code>bind_param</code>), que manda esos valores como datos y no como parte del SQL. El segundo es un fallo de integridad que ya veníamos arrastrando desde la Clase 2: el precio venía de un campo oculto del formulario, así que el cliente podía ponerlo en 1 y pagar lo que quisiera. Ese no lo arregla ninguna consulta preparada, porque el dato viajaba «bien formado», el problema era confiar en él. Se cierra con una medida de diseño: ya no se lee el precio del POST, se vuelve a consultar en la base por el id del producto, que es la única fuente confiable. La prueba lo confirma: mandando precio 1 y cantidad 2 sobre un producto de $3.000, el sistema cobró $6.000 (el valor real), no $2. O sea, un mismo refactor tapó una inyección (confidencialidad/integridad del SQL) y un fraude de precio (integridad de negocio), pero con herramientas diferentes para cada uno.</p>
+<p>En <code>pedido.php</code> se juntaban dos fallos de naturaleza distinta y la refactorización los cerró con dos medidas distintas aplicadas en el mismo archivo. El primero es la inyección SQL: el INSERT pegaba <code>producto_id</code> y <code>cantidad</code> dentro de la consulta, y eso se cierra con la consulta preparada (<code>bind_param</code>), que manda esos valores como datos y no como parte del SQL. El segundo es un fallo de integridad que la app ya venía arrastrando desde la Clase 2: el precio venía de un campo oculto del formulario, así que el cliente podía ponerlo en 1 y pagar lo que quisiera. Ese no lo arregla ninguna consulta preparada, porque el dato viajaba «bien formado», el problema era confiar en él. Se cierra con una medida de diseño: ya no se lee el precio del POST, se vuelve a consultar en la base por el id del producto, que es la única fuente confiable. La prueba lo confirma: mandando precio 1 y cantidad 2 sobre un producto de $3.000, el sistema cobró $6.000 (el valor real), no $2. O sea, un mismo refactor tapó una inyección (confidencialidad/integridad del SQL) y un fraude de precio (integridad de negocio), pero con herramientas diferentes para cada uno.</p>
 <h4>Pregunta 2. Evaluación de las capas de defensa</h4>
 <p>Si tuviera que quedarme con una sola, elegiría las <b>consultas preparadas</b>. La razón técnica es que atacan la causa de raíz del problema, que es mezclar el código con los datos. Una consulta preparada separa de forma estructural la orden SQL de los valores, entonces neutraliza cualquier variante de inyección (tautología, UNION, basada en error, ciega) sin importar qué escriba el usuario, y lo hace en todos los campos de esa consulta de una vez. La validación por lista blanca es muy útil, pero es por campo y depende de que uno haya previsto bien el patrón; si un caso se escapa del filtro, pasa. Y el mínimo privilegio no previene la inyección, solo limita el daño cuando ya ocurrió. Dicho de otra forma: las consultas preparadas son prevención amplia, la lista blanca es prevención puntual y el mínimo privilegio es contención. Si solo puedo pagar una barrera, me quedo con la que de verdad impide que el ataque funcione, no con la que lo suaviza.</p>
 <h4>Pregunta 3. Desafío de auditoría (límites de la validación)</h4>
