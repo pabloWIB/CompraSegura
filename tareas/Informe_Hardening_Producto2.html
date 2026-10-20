@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Informe de Hardening — Producto 2</title>
+<style>
+  @page { size: A4; margin: 2.2cm 2cm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Georgia", "Times New Roman", serif; font-size: 11.3pt; line-height: 1.5; color: #1a1a1a; }
+  h1,h2,h3,h4 { font-family: "Georgia", serif; color: #10243e; line-height: 1.25; }
+  h2 { font-size: 15pt; border-bottom: 2px solid #10243e; padding-bottom: 3px; margin-top: 26px; }
+  h3 { font-size: 12.6pt; margin-top: 20px; }
+  h4 { font-size: 11.5pt; margin: 14px 0 4px; }
+  p { text-align: justify; margin: 7px 0; }
+  ul,ol { text-align: justify; }
+  code, pre { font-family: "Consolas","Courier New",monospace; font-size: 9.6pt; }
+  pre { background:#f4f6f8; border:1px solid #d7dde3; border-radius:5px; padding:9px 11px; white-space:pre-wrap; word-break:break-word; }
+  .pay { background:#f4f6f8; border:1px solid #d7dde3; border-radius:4px; padding:1px 5px; font-family:Consolas,monospace; font-size:9.3pt; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 9pt; }
+  th,td { border: 1px solid #b9c2cc; padding: 5px 6px; vertical-align: top; text-align: left; }
+  th { background: #10243e; color: #fff; font-family:"Georgia",serif; font-weight:600; }
+  tr:nth-child(even) td { background: #f6f8fa; }
+  .ok { color:#157347; font-weight:bold; }
+  .bad { color:#b02a37; font-weight:bold; }
+  figure { margin: 12px 0; text-align:center; page-break-inside: avoid; }
+  figure img { max-width: 94%; border:1px solid #c7ced6; border-radius:4px; }
+  figcaption { font-size: 9.2pt; color:#444; margin-top:5px; text-align:center; font-style:italic; }
+  .portada { text-align:center; height: 23.5cm; display:flex; flex-direction:column; justify-content:center; page-break-after: always; }
+  .portada .u { font-size:15pt; letter-spacing:1px; color:#10243e; font-weight:bold; }
+  .portada .prog { font-size:11.5pt; margin-top:6px; }
+  .portada .titulo { font-size:20pt; font-weight:bold; margin:34px 24px; color:#10243e; line-height:1.3; }
+  .portada .sub { font-size:12.5pt; margin:0 30px 30px; color:#333; }
+  .portada .meta { font-size:11.5pt; line-height:1.9; }
+  .page-break { page-break-before: always; }
+  .toc { font-size:10.5pt; }
+  .toc div { display:flex; justify-content:space-between; border-bottom:1px dotted #aaa; padding:3px 0; }
+  .nota { background:#eef3f8; border-left:4px solid #10243e; padding:7px 11px; margin:10px 0; font-size:10pt; }
+  .kv td:first-child { font-weight:bold; width:33%; background:#f0f3f6; }
+  blockquote { margin:8px 0; padding:6px 12px; border-left:3px solid #9aa7b3; color:#333; background:#fafbfc; }
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<div class="portada">
+  <div class="u">UNIVERSIDAD DE MANIZALES</div>
+  <div class="prog">Tecnología en Desarrollo de Software para Negocios Digitales</div>
+  <div class="prog">Asignatura: Seguridad en Aplicaciones</div>
+  <div class="titulo">Informe de Hardening: implementación y verificación de defensa en profundidad contra la inyección SQL en el sistema NegocioSeguro</div>
+  <div class="sub">Producto 2 — Prevención contra la Inyección SQL</div>
+  <div class="meta">
+    <b>Integrantes:</b><br>
+    Pablo Nieto Pérez<br>
+    [Nombre completo del integrante 2]<br>
+    [Nombre completo del integrante 3]<br><br>
+    <b>Docente:</b> Sergio Pinilla Valencia<br>
+    Manizales, 22 de octubre de 2026
+  </div>
+</div>
+
+<!-- ===================== TOC ===================== -->
+<h2>Tabla de contenido</h2>
+<div class="toc">
+  <div><span>1. Introducción</span><span>3</span></div>
+  <div><span>2. Objetivos</span><span>3</span></div>
+  <div><span>3. Justificación</span><span>4</span></div>
+  <div><span>4. Desarrollo</span><span>4</span></div>
+  <div><span>&nbsp;&nbsp;4.1 Alcance y metodología</span><span>4</span></div>
+  <div><span>&nbsp;&nbsp;4.2 Estado inicial y preparación del entorno</span><span>5</span></div>
+  <div><span>&nbsp;&nbsp;4.3 Implementación de las capas de defensa</span><span>6</span></div>
+  <div><span>&nbsp;&nbsp;4.4 Matriz de Verificación de Hardening</span><span>9</span></div>
+  <div><span>&nbsp;&nbsp;4.5 Análisis de defensa en profundidad</span><span>10</span></div>
+  <div><span>&nbsp;&nbsp;4.6 Limitaciones y riesgos residuales</span><span>10</span></div>
+  <div><span>&nbsp;&nbsp;4.7 Respuestas a las tres preguntas de auditoría interna</span><span>11</span></div>
+  <div><span>5. Discusión general</span><span>12</span></div>
+  <div><span>6. Conclusiones</span><span>13</span></div>
+  <div><span>7. Bibliografía</span><span>13</span></div>
+  <div><span>8. Anexos</span><span>14</span></div>
+</div>
+
+<h2>Tabla de figuras</h2>
+<div class="toc">
+  <div><span>Figura 1. buscar_producto.php (UNION) antes: fuga de credenciales</span><span>7</span></div>
+  <div><span>Figura 2. buscar_producto.php (UNION) después: búsqueda sin resultados</span><span>7</span></div>
+  <div><span>Figura 3. login.php (tautología) antes: acceso concedido</span><span>7</span></div>
+  <div><span>Figura 4. login.php (tautología) después: acceso denegado</span><span>8</span></div>
+  <div><span>Figura 5. buscar_producto.php (error) después: sin fuga de versión</span><span>8</span></div>
+  <div><span>Figura 6. login.php (ciega booleana) después: acceso denegado</span><span>8</span></div>
+  <div><span>Figura 7. registro.php (admin'--) después: bloqueo por lista blanca</span><span>8</span></div>
+  <div><span>Figura 8. pedido.php (precio manipulado) antes: total $2</span><span>9</span></div>
+  <div><span>Figura 9. pedido.php (precio manipulado) después: total real $6.000</span><span>9</span></div>
+</div>
+
+<!-- ===================== 1 ===================== -->
+<div class="page-break"></div>
+<h2>1. Introducción</h2>
+<p>Este informe es la continuación de la Tarea 4, en la que habíamos auditado la aplicación NegocioSeguro (la misma Compra Segura que venimos usando en el curso) y habíamos reproducido en local varios ataques de inyección SQL siguiendo el OWASP Top 10. Allí dejamos el sistema diagnosticado; ahora lo que toca es la otra mitad del trabajo, que es taparle esos huecos y, sobre todo, comprobar que de verdad quedaron tapados.</p>
+<p>La idea de fondo que seguí es la de defensa en profundidad, que básicamente es no confiar todo a una sola barrera sino poner varias capas que se respalden entre sí. Trabajé tres: darle a la aplicación un usuario de base de datos con los permisos justos (mínimo privilegio), validar lo que entra por los formularios con una lista blanca, y cambiar todas las consultas para que usen sentencias preparadas con parámetros en vez de pegar el texto del usuario dentro del SQL. El marco de referencia sigue siendo el OWASP Top 10:2021, en particular la categoría A03 (Inyección), y para la parte de buenas prácticas de seguridad me apoyo en ISO/IEC 27002.</p>
+<p>El documento está organizado como pide la plantilla: primero los objetivos y la justificación, luego el desarrollo, que es la parte larga y donde va el grueso del trabajo (el estado inicial, las cinco correcciones archivo por archivo, la matriz de verificación y el análisis), después la discusión y las conclusiones, y al final la bibliografía y los anexos con el código completo. Una aclaración importante: todo esto se hizo en un entorno de pruebas local (XAMPP), sobre una aplicación hecha a propósito para ser insegura, así que no hay ningún riesgo ni dato real de por medio.</p>
+
+<!-- ===================== 2 ===================== -->
+<h2>2. Objetivos</h2>
+<h3>2.1 Objetivo general</h3>
+<p>Implementar y verificar, en un entorno local controlado, una estrategia de defensa en profundidad contra la inyección SQL en la aplicación NegocioSeguro, de modo que los vectores de inyección identificados en la Clase 6 queden neutralizados y comprobados con pruebas reproducibles.</p>
+<h3>2.2 Objetivos específicos</h3>
+<ol>
+  <li>Crear un usuario de base de datos con privilegios mínimos (solo SELECT, INSERT y UPDATE sobre la base del proyecto) y dejar que la aplicación se conecte con él, en vez de con root.</li>
+  <li>Refactorizar los cinco archivos (conexion.php, registro.php, login.php, buscar_producto.php y pedido.php) aplicando validación por lista blanca y sentencias preparadas con MySQLi y PDO.</li>
+  <li>Volver a ejecutar sobre el sistema ya corregido los mismos payloads de la Clase 6 y registrar el resultado real de cada uno en la Matriz de Verificación de Hardening.</li>
+  <li>Argumentar por qué las tres capas se complementan y responder las tres preguntas de auditoría interna de la guía, incluyendo los límites de la validación implementada.</li>
+</ol>
+
+<!-- ===================== 3 ===================== -->
+<h2>3. Justificación</h2>
+<p>NegocioSeguro maneja justo lo que un atacante querría: las credenciales de los usuarios y los datos de los pedidos. En la Tarea 4 demostramos que con una sola línea escrita en el buscador se podían sacar todas las contraseñas, y que el precio de un pedido se podía cambiar desde el navegador. Diagnosticar eso ya está hecho; lo que da valor ahora es cerrarlo y, más importante todavía, no quedarnos en el «ya lo corregí» sino probar que el ataque efectivamente dejó de funcionar.</p>
+<p>Elegí el marco OWASP porque la A03 (Inyección) es exactamente el fallo que tiene la aplicación, y lo complementé con la lógica de mínimo privilegio de ISO/IEC 27002, que es la idea de no darle a un componente más permisos de los que necesita. Trabajarlo en local, sobre una app vulnerable a propósito, deja ver el daño real y a la vez comprobar la corrección sin poner en riesgo a nadie, que es para lo que sirve el ejercicio.</p>
+
+<!-- ===================== 4 ===================== -->
+<h2>4. Cuerpo principal / Desarrollo</h2>
+
+<h3>4.1 Alcance y metodología</h3>
+<p>El alcance son los cinco archivos de NegocioSeguro y los seis payloads de la matriz de la guía. Lo que queda fuera (otras categorías del OWASP, el cifrado de contraseñas, etc.) lo dejo anotado en la sección 4.6.</p>
+<p>La metodología sigue una regla que la propia guía recalca: implementar no es lo mismo que verificar. No basta con decir «cambié login.php a consulta preparada, entonces ya no es vulnerable». Lo que hice fue, para cada punto, primero confirmar que el ataque funcionaba en el estado original (línea base), después aplicar la corrección, y por último repetir el mismo payload sobre el código ya corregido y anotar la respuesta exacta del sistema, sin idealizarla. Solo cuando esa prueba repetida sale como se espera, marco la fila como verificada.</p>
+<p>Las pruebas se hicieron de dos formas, para poder dejar evidencia clara: por un lado contra la copia original (carpeta <code>compraseguras_backup</code>) para capturar el «antes», y por otro contra la aplicación ya corregida para el «después». Todas las figuras de este informe salen de ese ejercicio real.</p>
+
+<h3>4.2 Estado inicial y preparación del entorno</h3>
+<table class="kv">
+  <tr><td>Fecha y hora de la verificación</td><td>20 de octubre de 2026, entorno local de desarrollo.</td></tr>
+  <tr><td>Estado de los servicios XAMPP</td><td>Apache (puerto 8080) y MySQL/MariaDB 10.4.32 activos y funcionando.</td></tr>
+  <tr><td>Método de respaldo</td><td>Dos respaldos independientes: (1) una copia completa de la carpeta del proyecto renombrada como <code>compraseguras_backup</code>, y (2) una etiqueta de Git <code>antes-producto2</code> sobre el commit previo a los cambios, en el repositorio <code>pabloWIB/CompraSegura</code>.</td></tr>
+  <tr><td>Ubicación del respaldo</td><td><code>C:\xampp\htdocs\compraseguras_backup</code> y la etiqueta <code>antes-producto2</code> en el historial de Git.</td></tr>
+  <tr><td>Estado inicial confirmado</td><td>Antes de tocar nada, repetí los payloads sobre la copia original y todos seguían funcionando: el login se saltaba con la tautología, el buscador soltaba las credenciales por UNION y el error de <code>extractvalue</code> mostraba la versión del motor (<span class="pay">~10.4.32-MariaDB</span>), y el pedido aceptaba un precio puesto por el cliente. Esto fija la línea base de comparación.</td></tr>
+</table>
+<p>La base <code>compraseguras</code> tiene las tres tablas de siempre (usuarios, productos, pedidos) con sus datos de ejemplo. Aclaro un detalle de nombres: la guía habla de la base «negocioseguro», pero en nuestro proyecto la base se llama <code>compraseguras</code> (es la misma app), así que todos los comandos y cadenas de conexión usan ese nombre real; el usuario restringido sí lo dejé como pide la guía, <code>negocioseguro_app</code>.</p>
+
+<h3>4.3 Implementación de las capas de defensa</h3>
+<p>Lo que sigue es, archivo por archivo, qué se corrigió y con qué prueba lo confirmé. Las capas no van por separado: varias se combinan en un mismo archivo.</p>
+
+<h4>4.3.1 Mínimo privilegio y configuración de conexion.php</h4>
+<table class="kv">
+  <tr><td>Objetivo de seguridad</td><td>Que, aunque una inyección llegara a ejecutarse, la cuenta de base de datos de la app no tuviera permiso para hacer daño mayor (borrar o alterar tablas).</td></tr>
+  <tr><td>Problema mitigado</td><td>La app se conectaba como <code>root</code>, que puede todo sobre el motor MySQL (A05, configuración incorrecta). Cualquier inyección exitosa heredaba esos permisos.</td></tr>
+  <tr><td>Cambio implementado</td><td>Creé el usuario <code>negocioseguro_app</code> con <code>GRANT SELECT, INSERT, UPDATE ON compraseguras.*</code> (sin DROP, ALTER ni DELETE) y cambié <code>conexion.php</code> para conectar con él. Además, el mensaje de error de conexión ya no muestra el detalle técnico.</td></tr>
+  <tr><td>Prueba realizada</td><td>Con el usuario nuevo intenté <span class="pay">DROP TABLE compraseguras.productos;</span> directamente en el motor.</td></tr>
+  <tr><td>Resultado observado</td><td><code>ERROR 1142 (42000): DROP command denied to user 'negocioseguro_app'@'localhost'</code>. En cambio un <code>SELECT</code> legítimo sí responde, así que la app sigue funcionando.</td></tr>
+  <tr><td>Análisis</td><td>Esta capa no evita la inyección, la contiene: reduce el daño posible. Es la última red de seguridad, no la primera.</td></tr>
+</table>
+
+<h4>4.3.2 Validación por lista blanca y consultas preparadas en registro.php</h4>
+<table class="kv">
+  <tr><td>Objetivo de seguridad</td><td>Rechazar entradas con caracteres peligrosos antes de que lleguen a la base de datos, y de todos modos insertar de forma parametrizada.</td></tr>
+  <tr><td>Problema mitigado</td><td>El INSERT concatenaba <code>$_POST['usuario']</code> y <code>$_POST['clave']</code>, así que una comilla ya rompía la consulta (A03).</td></tr>
+  <tr><td>Cambio implementado</td><td>Validación por lista blanca con <code>preg_match('/^[a-zA-Z0-9_]{3,20}$/', $usuario)</code>, longitud mínima de clave, y el INSERT con <code>prepare()</code> + <code>bind_param("ss", ...)</code>.</td></tr>
+  <tr><td>Prueba realizada</td><td>Registrar el usuario <span class="pay">admin'--</span>.</td></tr>
+  <tr><td>Resultado observado</td><td>«Nombre de usuario invalido. Use solo letras, numeros y guion bajo (3 a 20 caracteres).» La solicitud se corta antes de tocar la base de datos (ver Figura 7).</td></tr>
+  <tr><td>Análisis</td><td>Aquí actúan dos capas: la lista blanca frena el valor de entrada y, si algo pasara, la consulta preparada lo trataría como dato. No cubre la contraseña en texto plano, que es otra entrega.</td></tr>
+</table>
+
+<h4>4.3.3 Consultas preparadas y verificación de contraseñas en login.php</h4>
+<table class="kv">
+  <tr><td>Objetivo de seguridad</td><td>Que el login no se pueda saltar con una inyección y que la clave no se compare dentro del SQL.</td></tr>
+  <tr><td>Problema mitigado</td><td>La consulta <code>... WHERE usuario = '$usuario' AND clave = '$clave'</code> permitía el bypass por tautología y la extracción ciega booleana (A03, A07).</td></tr>
+  <tr><td>Cambio implementado</td><td>Consulta preparada que busca solo por usuario (<code>WHERE usuario = ?</code>), y la clave se compara después en PHP. La salida del nombre va con <code>htmlspecialchars()</code>.</td></tr>
+  <tr><td>Prueba realizada</td><td>El bypass clásico <span class="pay">' OR '1'='1</span> y la extracción ciega <span class="pay">admin' AND SUBSTRING(clave,1,1)='a' -- -</span>.</td></tr>
+  <tr><td>Resultado observado</td><td>En los dos casos: «Usuario o clave incorrectos.» El motor busca un usuario cuyo texto literal sea ese payload, y como no existe, no deja entrar (Figuras 4 y 6).</td></tr>
+  <tr><td>Análisis</td><td>La consulta preparada corta la inyección de raíz. Separar la verificación de la clave en PHP prepara además el terreno para cifrarla (próxima entrega).</td></tr>
+</table>
+
+<h4>4.3.4 PDO, parámetros nombrados y manejo de excepciones en buscar_producto.php</h4>
+<table class="kv">
+  <tr><td>Objetivo de seguridad</td><td>Que el buscador no deje leer otras tablas ni suelte información del motor por mensajes de error.</td></tr>
+  <tr><td>Problema mitigado</td><td><code>... WHERE nombre LIKE '%$busqueda%'</code> permitía inyección basada en error (extractvalue) y por UNION (A03).</td></tr>
+  <tr><td>Cambio implementado</td><td>Reescrito con PDO, parámetro nombrado <code>:busqueda</code> (el <code>%</code> va en el valor, no en el SQL), <code>ERRMODE_EXCEPTION</code> y un <code>catch</code> que muestra un mensaje genérico. La conexión PDO también usa el usuario restringido.</td></tr>
+  <tr><td>Prueba realizada</td><td><span class="pay">' AND extractvalue(1,concat(0x7e,(SELECT version()))) -- -</span> y <span class="pay">inexistente' UNION SELECT id, usuario, clave, 'robado' FROM usuarios -- -</span>.</td></tr>
+  <tr><td>Resultado observado</td><td>Ninguno de los dos devuelve datos ni errores: la búsqueda queda vacía porque el payload se busca como texto literal (Figuras 2 y 5). Ya no aparecen «admin - $admin123» ni la versión del motor.</td></tr>
+  <tr><td>Análisis</td><td>La consulta preparada neutraliza las dos variantes a la vez; suprimir el detalle de la excepción cierra además la fuga de información por errores.</td></tr>
+</table>
+
+<h4>4.3.5 Validación de tipos, consulta preparada y verificación del precio en pedido.php</h4>
+<table class="kv">
+  <tr><td>Objetivo de seguridad</td><td>Cerrar a la vez la inyección del INSERT y el fraude del precio, y exigir sesión.</td></tr>
+  <tr><td>Problema mitigado</td><td>El INSERT concatenaba los datos (A03), el precio venía de un campo oculto del formulario (A04/A08) y se aceptaban pedidos sin sesión (A01).</td></tr>
+  <tr><td>Cambio implementado</td><td>Exige <code>$_SESSION['usuario_id']</code>; valida con <code>filter_var(..., FILTER_VALIDATE_INT)</code>; <b>reconsulta el precio en la base por el id del producto</b> (no lo toma del POST); e inserta con consulta preparada <code>bind_param("iiid", ...)</code>.</td></tr>
+  <tr><td>Prueba realizada</td><td>Pedido del producto 1 (precio real $3.000) con el precio manipulado a <span class="pay">1</span> y cantidad 2; un <code>producto_id</code> no entero; y un pedido sin iniciar sesión.</td></tr>
+  <tr><td>Resultado observado</td><td>Total calculado real <b>$6.000,00</b>, ignorando el precio enviado (Figura 9). El id no entero da «Los datos del pedido son invalidos» y sin sesión da «Debe iniciar sesion para realizar un pedido».</td></tr>
+  <tr><td>Análisis</td><td>Es el caso donde se ve claro que la consulta preparada sola no basta: el fraude del precio es un fallo de diseño que se cierra con la reconsulta en el servidor, una medida distinta.</td></tr>
+</table>
+
+<h4>Evidencia visual (antes y después)</h4>
+<figure><img src="producto2-imagenes/antes-01-union.png"><figcaption>Figura 1. buscar_producto.php (UNION) <b>antes</b>: en lugar de productos salen los usuarios con sus claves en texto plano.</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-01-union.png"><figcaption>Figura 2. buscar_producto.php (UNION) <b>después</b>: el mismo payload no devuelve nada; se trató como búsqueda literal.</figcaption></figure>
+<figure><img src="producto2-imagenes/antes-02-login-bypass.png"><figcaption>Figura 3. login.php (tautología ' OR '1'='1) <b>antes</b>: «Bienvenido, admin. Acceso concedido.»</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-03-login-bypass.png"><figcaption>Figura 4. login.php (tautología) <b>después</b>: «Usuario o clave incorrectos.»</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-02-error.png"><figcaption>Figura 5. buscar_producto.php (extractvalue) <b>después</b>: no hay error ni se filtra la versión del motor.</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-04-login-booleana.png"><figcaption>Figura 6. login.php (ciega booleana) <b>después</b>: «Usuario o clave incorrectos.»</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-05-registro-listablanca.png"><figcaption>Figura 7. registro.php (admin'--) <b>después</b>: bloqueado por la lista blanca antes de llegar a la base de datos.</figcaption></figure>
+<figure><img src="producto2-imagenes/antes-03-pedido-precio.png"><figcaption>Figura 8. pedido.php con precio manipulado a 1 <b>antes</b>: total cobrado $2.</figcaption></figure>
+<figure><img src="producto2-imagenes/despues-06-pedido-precio.png"><figcaption>Figura 9. pedido.php con precio manipulado a 1 <b>después</b>: total real $6.000, el precio del cliente se ignora.</figcaption></figure>
+
+<h3>4.4 Matriz de Verificación de Hardening</h3>
+<p>La matriz reúne los seis puntos de la guía: el payload de la Clase 6, si funcionaba antes y si funciona ahora, la capa que lo neutralizó, el resultado observado sobre el código ya corregido y la evidencia.</p>
+<table>
+<tr>
+  <th>#</th><th>Archivo</th><th>Payload (Clase 6)</th><th>Capa(s) de defensa que lo neutralizó</th><th>¿Antes?</th><th>¿Ahora?</th><th>Resultado observado (corregido)</th><th>Evidencia</th><th>Estado</th>
+</tr>
+<tr>
+  <td>1</td><td>login.php</td><td><span class="pay">' OR '1'='1</span></td><td>Consulta preparada (MySQLi)</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>«Usuario o clave incorrectos.»</td><td>Fig. 3 y 4</td><td>Verificado / Exitoso</td>
+</tr>
+<tr>
+  <td>2</td><td>buscar_producto.php</td><td><span class="pay">' AND extractvalue(1,concat(0x7e,(SELECT version()))) -- -</span></td><td>Consulta preparada (PDO) + supresión de excepciones</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>Sin error en pantalla; no se filtra la versión; búsqueda vacía.</td><td>Fig. 5</td><td>Verificado / Exitoso</td>
+</tr>
+<tr>
+  <td>3</td><td>buscar_producto.php</td><td><span class="pay">inexistente' UNION SELECT id, usuario, clave, 'robado' FROM usuarios -- -</span></td><td>Consulta preparada (PDO)</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>No se listan usuarios ni claves; búsqueda vacía.</td><td>Fig. 1 y 2</td><td>Verificado / Exitoso</td>
+</tr>
+<tr>
+  <td>4</td><td>login.php</td><td><span class="pay">admin' AND SUBSTRING(clave,1,1)='a' -- -</span></td><td>Consulta preparada (MySQLi)</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>«Usuario o clave incorrectos.» No cambia según la condición.</td><td>Fig. 6</td><td>Verificado / Exitoso</td>
+</tr>
+<tr>
+  <td>5</td><td>registro.php</td><td><span class="pay">admin'--</span></td><td>Validación por lista blanca (preg_match) + consulta preparada</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>«Nombre de usuario invalido…» Se corta antes de la base de datos.</td><td>Fig. 7</td><td>Verificado / Exitoso</td>
+</tr>
+<tr>
+  <td>6</td><td>pedido.php</td><td>Inyección en el id / manipulación del precio</td><td>Validación de tipo (filter_var) + reconsulta del precio + consulta preparada + exigir sesión</td>
+  <td class="bad">Sí</td><td class="ok">No</td><td>Precio manipulado ignorado (total real $6.000); id no entero y pedido sin sesión rechazados.</td><td>Fig. 8 y 9</td><td>Verificado / Exitoso</td>
+</tr>
+</table>
+<p>Los seis quedan en «No» en la columna «¿Funciona ahora?», cada uno con su prueba repetida y su evidencia.</p>
+
+<h3>4.5 Análisis de defensa en profundidad</h3>
+<p>Las tres capas no son lo mismo repetido tres veces, cubren momentos distintos del ataque. La validación por lista blanca actúa en la entrada: filtra el dato apenas llega, antes de que toque la base. La consulta preparada actúa en el acceso a datos: aunque pase un valor raro, la base lo trata como dato y nunca como parte de la orden SQL. Y el mínimo privilegio actúa en el daño: si por algún hueco que no vimos una inyección llegara a ejecutarse, la cuenta de la app no podría borrar ni alterar tablas.</p>
+<p>Por eso se complementan y no sobran. Si solo tuviera la lista blanca, un caso de entrada que no previ podría colarse. Si solo tuviera la consulta preparada, estaría bien contra la inyección pero seguiría corriendo como root, y cualquier otro fallo tendría permisos de más. Si solo tuviera el mínimo privilegio, la inyección seguiría funcionando, solo que haría «menos» daño. Juntas, para que un ataque prospere tendría que romper las tres a la vez, que es justo lo que se busca.</p>
+
+<h3>4.6 Limitaciones y riesgos residuales</h3>
+<p>Este ejercicio no deja el sistema «ya seguro del todo», y conviene decirlo claro:</p>
+<ul>
+  <li>La verificación se hizo con los payloads conocidos de la Clase 6. Otras combinaciones de entrada no probadas podrían existir; una herramienta automática exploraría casos que esta matriz no contempla.</li>
+  <li>Quedan categorías del OWASP fuera de esta entrega. La más visible es que las contraseñas siguen guardadas en texto plano (A02); eso se corrige con <code>password_hash</code>/<code>password_verify</code> en una entrega posterior, no en esta.</li>
+  <li>El control de autorización (que un usuario solo vea o modifique lo suyo) es distinto de validar la entrada y no lo cubre la consulta preparada por sí sola.</li>
+  <li>Las pruebas fueron manuales y en local; no hay registro ni monitoreo de intentos (A09), así que un ataque lento podría pasar desapercibido.</li>
+  <li>Como se detalla en la pregunta 3, la validación de <code>cantidad</code> comprueba el tipo pero no un límite de negocio; un valor enorme es aceptado y provoca un problema aparte.</li>
+</ul>
+
+<h3>4.7 Respuestas a las tres preguntas de auditoría interna</h3>
+<h4>Pregunta 1 — Análisis de caso en pedido.php</h4>
+<p>En <code>pedido.php</code> se juntaban dos fallos de naturaleza distinta y la refactorización los cerró con dos medidas distintas aplicadas en el mismo archivo. El primero es la inyección SQL: el INSERT pegaba <code>producto_id</code> y <code>cantidad</code> dentro de la consulta, y eso se cierra con la consulta preparada (<code>bind_param</code>), que manda esos valores como datos y no como parte del SQL. El segundo es un fallo de integridad que ya veníamos arrastrando desde la Clase 2: el precio venía de un campo oculto del formulario, así que el cliente podía ponerlo en 1 y pagar lo que quisiera. Ese no lo arregla ninguna consulta preparada, porque el dato viajaba «bien formado», el problema era confiar en él. Se cierra con una medida de diseño: ya no se lee el precio del POST, se vuelve a consultar en la base por el id del producto, que es la única fuente confiable. La prueba lo confirma: mandando precio 1 y cantidad 2 sobre un producto de $3.000, el sistema cobró $6.000 (el valor real), no $2. O sea, un mismo refactor tapó una inyección (confidencialidad/integridad del SQL) y un fraude de precio (integridad de negocio), pero con herramientas diferentes para cada uno.</p>
+<h4>Pregunta 2 — Evaluación de las capas de defensa</h4>
+<p>Si tuviera que quedarme con una sola, elegiría las <b>consultas preparadas</b>. La razón técnica es que atacan la causa de raíz del problema, que es mezclar el código con los datos. Una consulta preparada separa de forma estructural la orden SQL de los valores, entonces neutraliza cualquier variante de inyección (tautología, UNION, basada en error, ciega) sin importar qué escriba el usuario, y lo hace en todos los campos de esa consulta de una vez. La validación por lista blanca es muy útil, pero es por campo y depende de que uno haya previsto bien el patrón; si un caso se escapa del filtro, pasa. Y el mínimo privilegio no previene la inyección, solo limita el daño cuando ya ocurrió. Dicho de otra forma: las consultas preparadas son prevención amplia, la lista blanca es prevención puntual y el mínimo privilegio es contención. Si solo puedo pagar una barrera, me quedo con la que de verdad impide que el ataque funcione, no con la que lo suaviza.</p>
+<h4>Pregunta 3 — Desafío de auditoría (límites de la validación)</h4>
+<p>Lo probé de verdad para no responder de memoria. Si en <code>cantidad</code> se manda <span class="pay">999999999</span>, la consulta preparada <b>no</b> evita la transacción, y tiene sentido: 999999999 es un entero válido, así que pasa el <code>filter_var(FILTER_VALIDATE_INT)</code> sin problema. Las consultas preparadas protegen contra inyección, no contra datos absurdos pero bien tipados. El pedido se registró, y ahí apareció un problema real: PHP calculó un total de $2.999.999.997.000, pero la columna <code>total</code> es <code>DECIMAL(10,2)</code>, que como máximo guarda 99.999.999,99. Como el <code>sql_mode</code> de este MariaDB no es estricto, la base no dio error: <b>truncó el valor en silencio</b> y guardó 99.999.999,99, un número que no coincide con lo que se le mostró al usuario. O sea, el daño no es de seguridad en el sentido de inyección, es de integridad y de negocio: un pedido sin sentido, un total mal guardado y una posible venta de un stock que no existe. Se corrige con una regla de negocio: validar un rango razonable de <code>cantidad</code> (por ejemplo entre 1 y un máximo, o contra el stock disponible del producto) y asegurarse de que el total quepa en la columna; además conviene activar el modo estricto de la base para que un desborde falle en vez de truncarse calladamente.</p>
+
+<!-- ===================== 5 ===================== -->
+<h2>5. Discusión general</h2>
+<p>Mirando los resultados en conjunto, lo primero que salta es que las cinco inyecciones venían del mismo error (pegar lo que escribe el usuario dentro del SQL) y que una sola práctica, las consultas preparadas, las cerró todas. Eso ordena las prioridades: antes de ponerse con controles finos, lo que más rinde es parametrizar todas las consultas, porque de un golpe tapa los cinco vectores.</p>
+<p>Lo segundo es que no todo es consulta preparada. <code>pedido.php</code> lo deja claro: el fraude del precio y la posibilidad de pedir sin sesión son fallos de diseño, y la cantidad gigante de la pregunta 3 es un fallo de reglas de negocio. Ninguno de esos lo arregla la parametrización; hacen falta controles aparte (reconsultar el precio, exigir sesión, validar rangos). Por eso la defensa en profundidad tiene sentido: cada capa cubre algo que las otras no.</p>
+<p>Si alguien objetara que con las consultas preparadas ya estaría todo, la respuesta está en la propia matriz y en la pregunta 3: la inyección sí quedó cerrada y verificada, pero el total truncado demuestra que quedan problemas que la parametrización no toca. Reconocerlo es parte del trabajo; declarar «ya es seguro» sería justo el tipo de conclusión exagerada que la guía pide evitar.</p>
+
+<!-- ===================== 6 ===================== -->
+<h2>6. Conclusiones</h2>
+<ul>
+  <li>Se implementaron las tres capas y se verificó con pruebas repetidas que los seis payloads de la Clase 6 dejaron de funcionar sobre el código corregido: los seis quedan en «No» en la matriz de la Sección 4.4 (objetivos 1, 2 y 3).</li>
+  <li>El mínimo privilegio se comprobó por separado: el usuario <code>negocioseguro_app</code> no puede ejecutar DROP, pero la app sigue operando con SELECT/INSERT/UPDATE, que es justo lo que necesita.</li>
+  <li>Las tres capas son complementarias: la lista blanca filtra la entrada, la consulta preparada separa código de datos y el mínimo privilegio contiene el daño; cada una cubre un momento distinto del ataque (objetivo 4).</li>
+  <li>La verificación se limitó a los payloads conocidos y en local. No se afirma que el sistema esté libre de otras inyecciones no exploradas, ni que otras categorías del OWASP (como las contraseñas en texto plano) queden resueltas por esta entrega.</li>
+  <li>La pregunta 3 dejó un hallazgo concreto que confirma el punto anterior: la consulta preparada no frena una cantidad de 999.999.999, que pasa la validación de tipo y termina guardando un total truncado; eso exige una validación de negocio adicional.</li>
+</ul>
+
+<!-- ===================== 7 ===================== -->
+<h2>7. Bibliografía</h2>
+<p>International Organization for Standardization. (2013). <i>ISO/IEC 27002:2013 — Information technology — Security techniques — Code of practice for information security controls</i>. ISO.</p>
+<p>OWASP Foundation. (s.f.). <i>OWASP Top 10</i>. Recuperado el 20 de octubre de 2026 de https://owasp.org/www-project-top-ten/</p>
+<p>OWASP Foundation. (s.f.). <i>SQL Injection Prevention Cheat Sheet</i>. Recuperado el 20 de octubre de 2026 de https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</p>
+<p>The PHP Group. (s.f.). <i>Sentencias preparadas con MySQLi — Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/mysqli.quickstart.prepared-statements.php</p>
+<p>The PHP Group. (s.f.). <i>PDO::prepare — Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/pdo.prepare.php</p>
+
+<!-- ===================== 8 ===================== -->
+<h2>8. Anexos</h2>
+<p><b>Anexo A. Evidencias complementarias.</b> Las nueve figuras del informe salen de las pruebas reales ejecutadas el 20/10/2026; las imágenes a resolución completa quedan en la carpeta <code>tareas/producto2-imagenes/</code> del repositorio, organizadas por componente (prefijo <code>antes-</code> y <code>despues-</code>).</p>
+<p><b>Anexo B. Resumen de los cambios por archivo.</b> conexion.php: usuario restringido en vez de root. registro.php: lista blanca + INSERT preparado. login.php: SELECT preparado por usuario y verificación de clave en PHP. buscar_producto.php: PDO con parámetro nombrado y manejo de excepciones. pedido.php: validación de tipo, reconsulta del precio y INSERT preparado.</p>
+<p><b>Anexo C. Código completo de los cinco archivos refactorizados.</b> Se entregan también comprimidos en el ZIP de la actividad.</p>
+
+<h4>conexion.php</h4>
+<pre id="c-conexion"></pre>
+<h4>registro.php</h4>
+<pre id="c-registro"></pre>
+<h4>login.php</h4>
+<pre id="c-login"></pre>
+<h4>buscar_producto.php</h4>
+<pre id="c-buscar"></pre>
+<h4>pedido.php</h4>
+<pre id="c-pedido"></pre>
+
+</body>
+</html>
