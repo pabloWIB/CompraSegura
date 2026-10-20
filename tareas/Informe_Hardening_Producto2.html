@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Informe de Hardening — Producto 2</title>
+<title>Informe de Hardening, Producto 2</title>
 <style>
   @page { size: A4; margin: 2.2cm 2cm; }
   * { box-sizing: border-box; }
@@ -11,6 +11,7 @@
   h2 { font-size: 15pt; border-bottom: 2px solid #10243e; padding-bottom: 3px; margin-top: 26px; }
   h3 { font-size: 12.6pt; margin-top: 20px; }
   h4 { font-size: 11.5pt; margin: 14px 0 4px; }
+  h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
   p { text-align: justify; margin: 7px 0; }
   ul,ol { text-align: justify; }
   code, pre { font-family: "Consolas","Courier New",monospace; font-size: 9.6pt; }
@@ -47,7 +48,7 @@
   <div class="prog">Tecnología en Desarrollo de Software para Negocios Digitales</div>
   <div class="prog">Asignatura: Seguridad en Aplicaciones</div>
   <div class="titulo">Informe de Hardening: implementación y verificación de defensa en profundidad contra la inyección SQL en el sistema NegocioSeguro</div>
-  <div class="sub">Producto 2 — Prevención contra la Inyección SQL</div>
+  <div class="sub">Producto 2. Prevención contra la Inyección SQL</div>
   <div class="meta">
     <b>Integrantes:</b><br>
     Pablo Nieto Pérez<br>
@@ -63,32 +64,32 @@
 <div class="toc">
   <div><span>1. Introducción</span><span>3</span></div>
   <div><span>2. Objetivos</span><span>3</span></div>
-  <div><span>3. Justificación</span><span>4</span></div>
+  <div><span>3. Justificación</span><span>3</span></div>
   <div><span>4. Desarrollo</span><span>4</span></div>
   <div><span>&nbsp;&nbsp;4.1 Alcance y metodología</span><span>4</span></div>
-  <div><span>&nbsp;&nbsp;4.2 Estado inicial y preparación del entorno</span><span>5</span></div>
-  <div><span>&nbsp;&nbsp;4.3 Implementación de las capas de defensa</span><span>6</span></div>
-  <div><span>&nbsp;&nbsp;4.4 Matriz de Verificación de Hardening</span><span>9</span></div>
-  <div><span>&nbsp;&nbsp;4.5 Análisis de defensa en profundidad</span><span>10</span></div>
-  <div><span>&nbsp;&nbsp;4.6 Limitaciones y riesgos residuales</span><span>10</span></div>
-  <div><span>&nbsp;&nbsp;4.7 Respuestas a las tres preguntas de auditoría interna</span><span>11</span></div>
-  <div><span>5. Discusión general</span><span>12</span></div>
-  <div><span>6. Conclusiones</span><span>13</span></div>
-  <div><span>7. Bibliografía</span><span>13</span></div>
-  <div><span>8. Anexos</span><span>14</span></div>
+  <div><span>&nbsp;&nbsp;4.2 Estado inicial y preparación del entorno</span><span>4</span></div>
+  <div><span>&nbsp;&nbsp;4.3 Implementación de las capas de defensa</span><span>4</span></div>
+  <div><span>&nbsp;&nbsp;4.4 Matriz de Verificación de Hardening</span><span>7</span></div>
+  <div><span>&nbsp;&nbsp;4.5 Análisis de defensa en profundidad</span><span>7</span></div>
+  <div><span>&nbsp;&nbsp;4.6 Limitaciones y riesgos residuales</span><span>8</span></div>
+  <div><span>&nbsp;&nbsp;4.7 Respuestas a las tres preguntas de auditoría interna</span><span>8</span></div>
+  <div><span>5. Discusión general</span><span>9</span></div>
+  <div><span>6. Conclusiones</span><span>9</span></div>
+  <div><span>7. Bibliografía</span><span>9</span></div>
+  <div><span>8. Anexos</span><span>10</span></div>
 </div>
 
 <h2>Tabla de figuras</h2>
 <div class="toc">
-  <div><span>Figura 1. buscar_producto.php (UNION) antes: fuga de credenciales</span><span>7</span></div>
-  <div><span>Figura 2. buscar_producto.php (UNION) después: búsqueda sin resultados</span><span>7</span></div>
-  <div><span>Figura 3. login.php (tautología) antes: acceso concedido</span><span>7</span></div>
-  <div><span>Figura 4. login.php (tautología) después: acceso denegado</span><span>8</span></div>
-  <div><span>Figura 5. buscar_producto.php (error) después: sin fuga de versión</span><span>8</span></div>
-  <div><span>Figura 6. login.php (ciega booleana) después: acceso denegado</span><span>8</span></div>
-  <div><span>Figura 7. registro.php (admin'--) después: bloqueo por lista blanca</span><span>8</span></div>
-  <div><span>Figura 8. pedido.php (precio manipulado) antes: total $2</span><span>9</span></div>
-  <div><span>Figura 9. pedido.php (precio manipulado) después: total real $6.000</span><span>9</span></div>
+  <div><span>Figura 1. buscar_producto.php (UNION) antes: fuga de credenciales</span><span>6</span></div>
+  <div><span>Figura 2. buscar_producto.php (UNION) después: búsqueda sin resultados</span><span>6</span></div>
+  <div><span>Figura 3. login.php (tautología) antes: acceso concedido</span><span>6</span></div>
+  <div><span>Figura 4. login.php (tautología) después: acceso denegado</span><span>6</span></div>
+  <div><span>Figura 5. buscar_producto.php (error) después: sin fuga de versión</span><span>6</span></div>
+  <div><span>Figura 6. login.php (ciega booleana) después: acceso denegado</span><span>6</span></div>
+  <div><span>Figura 7. registro.php (admin'--) después: bloqueo por lista blanca</span><span>6</span></div>
+  <div><span>Figura 8. pedido.php (precio manipulado) antes: total $2</span><span>6</span></div>
+  <div><span>Figura 9. pedido.php (precio manipulado) después: total real $6.000</span><span>7</span></div>
 </div>
 
 <!-- ===================== 1 ===================== -->
@@ -245,11 +246,11 @@
 </ul>
 
 <h3>4.7 Respuestas a las tres preguntas de auditoría interna</h3>
-<h4>Pregunta 1 — Análisis de caso en pedido.php</h4>
+<h4>Pregunta 1. Análisis de caso en pedido.php</h4>
 <p>En <code>pedido.php</code> se juntaban dos fallos de naturaleza distinta y la refactorización los cerró con dos medidas distintas aplicadas en el mismo archivo. El primero es la inyección SQL: el INSERT pegaba <code>producto_id</code> y <code>cantidad</code> dentro de la consulta, y eso se cierra con la consulta preparada (<code>bind_param</code>), que manda esos valores como datos y no como parte del SQL. El segundo es un fallo de integridad que ya veníamos arrastrando desde la Clase 2: el precio venía de un campo oculto del formulario, así que el cliente podía ponerlo en 1 y pagar lo que quisiera. Ese no lo arregla ninguna consulta preparada, porque el dato viajaba «bien formado», el problema era confiar en él. Se cierra con una medida de diseño: ya no se lee el precio del POST, se vuelve a consultar en la base por el id del producto, que es la única fuente confiable. La prueba lo confirma: mandando precio 1 y cantidad 2 sobre un producto de $3.000, el sistema cobró $6.000 (el valor real), no $2. O sea, un mismo refactor tapó una inyección (confidencialidad/integridad del SQL) y un fraude de precio (integridad de negocio), pero con herramientas diferentes para cada uno.</p>
-<h4>Pregunta 2 — Evaluación de las capas de defensa</h4>
+<h4>Pregunta 2. Evaluación de las capas de defensa</h4>
 <p>Si tuviera que quedarme con una sola, elegiría las <b>consultas preparadas</b>. La razón técnica es que atacan la causa de raíz del problema, que es mezclar el código con los datos. Una consulta preparada separa de forma estructural la orden SQL de los valores, entonces neutraliza cualquier variante de inyección (tautología, UNION, basada en error, ciega) sin importar qué escriba el usuario, y lo hace en todos los campos de esa consulta de una vez. La validación por lista blanca es muy útil, pero es por campo y depende de que uno haya previsto bien el patrón; si un caso se escapa del filtro, pasa. Y el mínimo privilegio no previene la inyección, solo limita el daño cuando ya ocurrió. Dicho de otra forma: las consultas preparadas son prevención amplia, la lista blanca es prevención puntual y el mínimo privilegio es contención. Si solo puedo pagar una barrera, me quedo con la que de verdad impide que el ataque funcione, no con la que lo suaviza.</p>
-<h4>Pregunta 3 — Desafío de auditoría (límites de la validación)</h4>
+<h4>Pregunta 3. Desafío de auditoría (límites de la validación)</h4>
 <p>Lo probé de verdad para no responder de memoria. Si en <code>cantidad</code> se manda <span class="pay">999999999</span>, la consulta preparada <b>no</b> evita la transacción, y tiene sentido: 999999999 es un entero válido, así que pasa el <code>filter_var(FILTER_VALIDATE_INT)</code> sin problema. Las consultas preparadas protegen contra inyección, no contra datos absurdos pero bien tipados. El pedido se registró, y ahí apareció un problema real: PHP calculó un total de $2.999.999.997.000, pero la columna <code>total</code> es <code>DECIMAL(10,2)</code>, que como máximo guarda 99.999.999,99. Como el <code>sql_mode</code> de este MariaDB no es estricto, la base no dio error: <b>truncó el valor en silencio</b> y guardó 99.999.999,99, un número que no coincide con lo que se le mostró al usuario. O sea, el daño no es de seguridad en el sentido de inyección, es de integridad y de negocio: un pedido sin sentido, un total mal guardado y una posible venta de un stock que no existe. Se corrige con una regla de negocio: validar un rango razonable de <code>cantidad</code> (por ejemplo entre 1 y un máximo, o contra el stock disponible del producto) y asegurarse de que el total quepa en la columna; además conviene activar el modo estricto de la base para que un desborde falle en vez de truncarse calladamente.</p>
 
 <!-- ===================== 5 ===================== -->
@@ -270,11 +271,11 @@
 
 <!-- ===================== 7 ===================== -->
 <h2>7. Bibliografía</h2>
-<p>International Organization for Standardization. (2013). <i>ISO/IEC 27002:2013 — Information technology — Security techniques — Code of practice for information security controls</i>. ISO.</p>
+<p>International Organization for Standardization. (2013). <i>ISO/IEC 27002:2013. Information technology, Security techniques, Code of practice for information security controls</i>. ISO.</p>
 <p>OWASP Foundation. (s.f.). <i>OWASP Top 10</i>. Recuperado el 20 de octubre de 2026 de https://owasp.org/www-project-top-ten/</p>
 <p>OWASP Foundation. (s.f.). <i>SQL Injection Prevention Cheat Sheet</i>. Recuperado el 20 de octubre de 2026 de https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html</p>
-<p>The PHP Group. (s.f.). <i>Sentencias preparadas con MySQLi — Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/mysqli.quickstart.prepared-statements.php</p>
-<p>The PHP Group. (s.f.). <i>PDO::prepare — Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/pdo.prepare.php</p>
+<p>The PHP Group. (s.f.). <i>Sentencias preparadas con MySQLi. Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/mysqli.quickstart.prepared-statements.php</p>
+<p>The PHP Group. (s.f.). <i>PDO::prepare. Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/pdo.prepare.php</p>
 
 <!-- ===================== 8 ===================== -->
 <h2>8. Anexos</h2>
@@ -283,15 +284,190 @@
 <p><b>Anexo C. Código completo de los cinco archivos refactorizados.</b> Se entregan también comprimidos en el ZIP de la actividad.</p>
 
 <h4>conexion.php</h4>
-<pre id="c-conexion"></pre>
+<pre id="c-conexion">&lt;?php
+// Capa 1 - Minimo privilegio: la app ya no se conecta como root.
+// Se usa el usuario 'negocioseguro_app', que solo tiene SELECT, INSERT y UPDATE
+// sobre la base compraseguras (no puede DROP, ALTER ni DELETE).
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$host = "localhost";
+$user = "negocioseguro_app";
+$pass = "ClaveSegura123!";
+$db   = "compraseguras";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn-&gt;connect_error) {
+    // No se muestra el detalle tecnico al usuario (eso seria A05/A09).
+    die("Error critico de conexion a la base de datos.");
+}
+?&gt;</pre>
 <h4>registro.php</h4>
-<pre id="c-registro"></pre>
+<pre id="c-registro">&lt;?php
+include 'conexion.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usuario = trim($_POST['usuario']); // quita espacios al inicio/final
+    $clave   = $_POST['clave'];
+
+    // Capa 2 - Validacion por lista blanca: solo letras, numeros y guion bajo,
+    // entre 3 y 20 caracteres. Un valor como admin'-- se rechaza aqui mismo,
+    // antes de tocar la base de datos.
+    if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $usuario)) {
+        die("Nombre de usuario invalido. Use solo letras, numeros y guion bajo (3 a 20 caracteres).");
+    }
+
+    // Politica de longitud minima de la clave (Clase 5).
+    if (strlen($clave) &lt; 8) {
+        die("La clave debe tener al menos 8 caracteres.");
+    }
+
+    // Capa 3 - Consulta preparada con MySQLi: los datos van por marcadores (?),
+    // nunca concatenados dentro del SQL.
+    $stmt = $conn-&gt;prepare("INSERT INTO usuarios (usuario, clave) VALUES (?, ?)");
+    $stmt-&gt;bind_param("ss", $usuario, $clave);
+
+    if ($stmt-&gt;execute()) {
+        echo "Usuario registrado con exito.";
+    } else {
+        echo "No se pudo registrar el usuario.";
+    }
+    $stmt-&gt;close();
+}
+?&gt;
+&lt;form method="POST"&gt;
+  Nuevo usuario: &lt;input type="text" name="usuario"&gt;&lt;br&gt;
+  Clave: &lt;input type="password" name="clave"&gt;&lt;br&gt;
+  &lt;button type="submit"&gt;Registrarme&lt;/button&gt;
+&lt;/form&gt;</pre>
 <h4>login.php</h4>
-<pre id="c-login"></pre>
+<pre id="c-login">&lt;?php
+include 'conexion.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usuario = $_POST['usuario'];
+    $clave   = $_POST['clave'];
+
+    // Capa 3 - Consulta preparada con MySQLi. Solo se consulta por el usuario,
+    // nunca por la clave; la verificacion de la clave se hace despues en PHP.
+    // Asi un texto como ' OR '1'='1 se busca como un nombre de usuario literal.
+    $stmt = $conn-&gt;prepare("SELECT * FROM usuarios WHERE usuario = ?");
+    $stmt-&gt;bind_param("s", $usuario);
+    $stmt-&gt;execute();
+    $resultado = $stmt-&gt;get_result();
+
+    if ($resultado &amp;&amp; $resultado-&gt;num_rows &gt; 0) {
+        $fila = $resultado-&gt;fetch_assoc();
+        if ($clave === $fila['clave']) {
+            $_SESSION['usuario_id'] = $fila['id'];
+            $_SESSION['usuario']    = $fila['usuario'];
+            // htmlspecialchars al imprimir el nombre, para no dar pie a XSS.
+            echo "Bienvenido, " . htmlspecialchars($fila['usuario']) . ". Acceso concedido.";
+        } else {
+            echo "Usuario o clave incorrectos.";
+        }
+    } else {
+        echo "Usuario o clave incorrectos.";
+    }
+    $stmt-&gt;close();
+}
+?&gt;
+&lt;form method="POST"&gt;
+  Usuario: &lt;input type="text" name="usuario"&gt;&lt;br&gt;
+  Clave: &lt;input type="password" name="clave"&gt;&lt;br&gt;
+  &lt;button type="submit"&gt;Ingresar&lt;/button&gt;
+&lt;/form&gt;</pre>
 <h4>buscar_producto.php</h4>
-<pre id="c-buscar"></pre>
+<pre id="c-buscar">&lt;?php
+session_start();
+$busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+if ($busqueda !== '') {
+    try {
+        // Capa 3 con PDO. Se conecta con el usuario restringido de la Capa 1
+        // (no con root) y se activan las excepciones para manejarlas nosotros.
+        $pdo = new PDO(
+            "mysql:host=localhost;dbname=compraseguras;charset=utf8mb4",
+            "negocioseguro_app",
+            "ClaveSegura123!"
+        );
+        $pdo-&gt;setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Marcador de posicion con nombre. El % se agrega en el valor, no en el SQL.
+        $stmt = $pdo-&gt;prepare("SELECT nombre, precio FROM productos WHERE nombre LIKE :busqueda");
+        $stmt-&gt;bindValue(':busqueda', '%' . $busqueda . '%');
+        $stmt-&gt;execute();
+
+        while ($fila = $stmt-&gt;fetch(PDO::FETCH_ASSOC)) {
+            echo htmlspecialchars($fila['nombre']) . " - $" . htmlspecialchars($fila['precio']) . "&lt;br&gt;";
+        }
+    } catch (PDOException $e) {
+        // Nunca mostrar $e-&gt;getMessage() al usuario: eso reabriria la inyeccion
+        // basada en errores de la Clase 6.
+        echo "Ocurrio un error al procesar la busqueda. Intente nuevamente.";
+    }
+}
+?&gt;
+&lt;form method="GET"&gt;
+  Buscar producto: &lt;input type="text" name="q"&gt;
+  &lt;button type="submit"&gt;Buscar&lt;/button&gt;
+&lt;/form&gt;</pre>
 <h4>pedido.php</h4>
-<pre id="c-pedido"></pre>
+<pre id="c-pedido">&lt;?php
+include 'conexion.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $producto_id = $_POST['producto_id'] ?? '';
+    $cantidad    = $_POST['cantidad'] ?? '';
+    $usuario_id  = $_SESSION['usuario_id'] ?? 0;
+
+    // Exige sesion iniciada (cierra el pedido con usuario 0, A01).
+    if ($usuario_id === 0) {
+        die("Error: Debe iniciar sesion para realizar un pedido.");
+    }
+
+    // Validacion de tipo: producto_id y cantidad deben ser enteros positivos.
+    if (!filter_var($producto_id, FILTER_VALIDATE_INT) ||
+        !filter_var($cantidad, FILTER_VALIDATE_INT) ||
+        $cantidad &lt;= 0) {
+        die("Error: Los datos del pedido son invalidos.");
+    }
+
+    // Defensivo: el precio NUNCA se toma del formulario. Se reconsulta en la BD
+    // por el id del producto, con consulta preparada.
+    $stmt_precio = $conn-&gt;prepare("SELECT precio FROM productos WHERE id = ?");
+    $stmt_precio-&gt;bind_param("i", $producto_id);
+    $stmt_precio-&gt;execute();
+    $res_precio = $stmt_precio-&gt;get_result();
+
+    if ($res_precio-&gt;num_rows === 0) {
+        die("Error: El producto seleccionado no existe.");
+    }
+
+    $producto    = $res_precio-&gt;fetch_assoc();
+    $precio_real = $producto['precio'];
+    $total       = $precio_real * $cantidad;
+    $stmt_precio-&gt;close();
+
+    // Registro del pedido con consulta preparada.
+    $stmt_pedido = $conn-&gt;prepare("INSERT INTO pedidos (usuario_id, producto_id, cantidad, total) VALUES (?, ?, ?, ?)");
+    $stmt_pedido-&gt;bind_param("iiid", $usuario_id, $producto_id, $cantidad, $total);
+
+    if ($stmt_pedido-&gt;execute()) {
+        echo "Pedido registrado exitosamente. Total calculado: $" . number_format($total, 2);
+    } else {
+        echo "Error al registrar el pedido.";
+    }
+    $stmt_pedido-&gt;close();
+}
+?&gt;
+&lt;form method="POST"&gt;
+  &lt;input type="hidden" name="producto_id" value="1"&gt;
+  &lt;input type="hidden" name="precio" value="3000"&gt;
+  Cantidad: &lt;input type="number" name="cantidad" value="1"&gt;
+  &lt;button type="submit"&gt;Confirmar pedido&lt;/button&gt;
+&lt;/form&gt;</pre>
 
 </body>
 </html>
