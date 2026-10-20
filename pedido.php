@@ -1,15 +1,49 @@
 <?php
 include 'conexion.php';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $producto_id = $_POST['producto_id'];
-    $precio      = $_POST['precio'];
-    $cantidad    = $_POST['cantidad'];
-    $usuario_id  = $_SESSION['usuario_id'] ?? 0;
-    $total = $precio * $cantidad;
 
-    $sql = "INSERT INTO pedidos (usuario_id, producto_id, cantidad, total) VALUES ('$usuario_id','$producto_id','$cantidad','$total')";
-    $conn->query($sql);
-    echo "Pedido registrado. Total a pagar: $" . $total;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $producto_id = $_POST['producto_id'] ?? '';
+    $cantidad    = $_POST['cantidad'] ?? '';
+    $usuario_id  = $_SESSION['usuario_id'] ?? 0;
+
+    // Exige sesion iniciada (cierra el pedido con usuario 0, A01).
+    if ($usuario_id === 0) {
+        die("Error: Debe iniciar sesion para realizar un pedido.");
+    }
+
+    // Validacion de tipo: producto_id y cantidad deben ser enteros positivos.
+    if (!filter_var($producto_id, FILTER_VALIDATE_INT) ||
+        !filter_var($cantidad, FILTER_VALIDATE_INT) ||
+        $cantidad <= 0) {
+        die("Error: Los datos del pedido son invalidos.");
+    }
+
+    // Defensivo: el precio NUNCA se toma del formulario. Se reconsulta en la BD
+    // por el id del producto, con consulta preparada.
+    $stmt_precio = $conn->prepare("SELECT precio FROM productos WHERE id = ?");
+    $stmt_precio->bind_param("i", $producto_id);
+    $stmt_precio->execute();
+    $res_precio = $stmt_precio->get_result();
+
+    if ($res_precio->num_rows === 0) {
+        die("Error: El producto seleccionado no existe.");
+    }
+
+    $producto    = $res_precio->fetch_assoc();
+    $precio_real = $producto['precio'];
+    $total       = $precio_real * $cantidad;
+    $stmt_precio->close();
+
+    // Registro del pedido con consulta preparada.
+    $stmt_pedido = $conn->prepare("INSERT INTO pedidos (usuario_id, producto_id, cantidad, total) VALUES (?, ?, ?, ?)");
+    $stmt_pedido->bind_param("iiid", $usuario_id, $producto_id, $cantidad, $total);
+
+    if ($stmt_pedido->execute()) {
+        echo "Pedido registrado exitosamente. Total calculado: $" . number_format($total, 2);
+    } else {
+        echo "Error al registrar el pedido.";
+    }
+    $stmt_pedido->close();
 }
 ?>
 <form method="POST">
