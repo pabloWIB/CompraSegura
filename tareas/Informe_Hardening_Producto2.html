@@ -42,7 +42,6 @@
 </head>
 <body>
 
-<!-- ===================== PORTADA ===================== -->
 <div class="portada">
   <div class="u">UNIVERSIDAD DE MANIZALES</div>
   <div class="prog">Tecnología en Desarrollo de Software para Negocios Digitales</div>
@@ -57,7 +56,6 @@
   </div>
 </div>
 
-<!-- ===================== TOC ===================== -->
 <h2>Tabla de contenido</h2>
 <div class="toc">
   <div><span>1. Introducción</span><span>3</span></div>
@@ -90,14 +88,12 @@
   <div><span>Figura 9. pedido.php (precio manipulado) después: total real $6.000</span><span>7</span></div>
 </div>
 
-<!-- ===================== 1 ===================== -->
 <div class="page-break"></div>
 <h2>1. Introducción</h2>
 <p>Este informe es la continuación de la Tarea 4, en la que había auditado la aplicación NegocioSeguro (la misma Compra Segura que vengo usando en el curso) y había reproducido en local varios ataques de inyección SQL siguiendo el OWASP Top 10. Allí dejé el sistema diagnosticado; ahora lo que toca es la otra mitad del trabajo, que es taparle esos huecos y, sobre todo, comprobar que de verdad quedaron tapados.</p>
 <p>La idea de fondo que seguí es la de defensa en profundidad, que básicamente es no confiar todo a una sola barrera sino poner varias capas que se respalden entre sí. Trabajé tres: darle a la aplicación un usuario de base de datos con los permisos justos (mínimo privilegio), validar lo que entra por los formularios con una lista blanca, y cambiar todas las consultas para que usen sentencias preparadas con parámetros en vez de pegar el texto del usuario dentro del SQL. El marco de referencia sigue siendo el OWASP Top 10:2021, en particular la categoría A03 (Inyección), y para la parte de buenas prácticas de seguridad me apoyo en ISO/IEC 27002.</p>
 <p>El documento está organizado como pide la plantilla: primero los objetivos y la justificación, luego el desarrollo, que es la parte larga y donde va el grueso del trabajo (el estado inicial, las cinco correcciones archivo por archivo, la matriz de verificación y el análisis), después la discusión y las conclusiones, y al final la bibliografía y los anexos con el código completo. Una aclaración importante: todo esto se hizo en un entorno de pruebas local (XAMPP), sobre una aplicación hecha a propósito para ser insegura, así que no hay ningún riesgo ni dato real de por medio.</p>
 
-<!-- ===================== 2 ===================== -->
 <h2>2. Objetivos</h2>
 <h3>2.1 Objetivo general</h3>
 <p>Implementar y verificar, en un entorno local controlado, una estrategia de defensa en profundidad contra la inyección SQL en la aplicación NegocioSeguro, de modo que los vectores de inyección identificados en la Clase 6 queden neutralizados y comprobados con pruebas reproducibles.</p>
@@ -109,12 +105,10 @@
   <li>Argumentar por qué las tres capas se complementan y responder las tres preguntas de auditoría interna de la guía, incluyendo los límites de la validación implementada.</li>
 </ol>
 
-<!-- ===================== 3 ===================== -->
 <h2>3. Justificación</h2>
 <p>NegocioSeguro maneja justo lo que un atacante querría: las credenciales de los usuarios y los datos de los pedidos. En la Tarea 4 demostré que con una sola línea escrita en el buscador se podían sacar todas las contraseñas, y que el precio de un pedido se podía cambiar desde el navegador. Diagnosticar eso ya está hecho; lo que da valor ahora es cerrarlo y, más importante todavía, no quedarme en el «ya lo corregí» sino probar que el ataque efectivamente dejó de funcionar.</p>
 <p>Elegí el marco OWASP porque la A03 (Inyección) es exactamente el fallo que tiene la aplicación, y lo complementé con la lógica de mínimo privilegio de ISO/IEC 27002, que es la idea de no darle a un componente más permisos de los que necesita. Trabajarlo en local, sobre una app vulnerable a propósito, deja ver el daño real y a la vez comprobar la corrección sin poner en riesgo a nadie, que es para lo que sirve el ejercicio.</p>
 
-<!-- ===================== 4 ===================== -->
 <h2>4. Cuerpo principal / Desarrollo</h2>
 
 <h3>4.1 Alcance y metodología</h3>
@@ -251,13 +245,11 @@
 <h4>Pregunta 3. Desafío de auditoría (límites de la validación)</h4>
 <p>Lo probé de verdad para no responder de memoria. Si en <code>cantidad</code> se manda <span class="pay">999999999</span>, la consulta preparada <b>no</b> evita la transacción, y tiene sentido: 999999999 es un entero válido, así que pasa el <code>filter_var(FILTER_VALIDATE_INT)</code> sin problema. Las consultas preparadas protegen contra inyección, no contra datos absurdos pero bien tipados. El pedido se registró, y ahí apareció un problema real: PHP calculó un total de $2.999.999.997.000, pero la columna <code>total</code> es <code>DECIMAL(10,2)</code>, que como máximo guarda 99.999.999,99. Como el <code>sql_mode</code> de este MariaDB no es estricto, la base no dio error: <b>truncó el valor en silencio</b> y guardó 99.999.999,99, un número que no coincide con lo que se le mostró al usuario. O sea, el daño no es de seguridad en el sentido de inyección, es de integridad y de negocio: un pedido sin sentido, un total mal guardado y una posible venta de un stock que no existe. Se corrige con una regla de negocio: validar un rango razonable de <code>cantidad</code> (por ejemplo entre 1 y un máximo, o contra el stock disponible del producto) y asegurarse de que el total quepa en la columna; además conviene activar el modo estricto de la base para que un desborde falle en vez de truncarse calladamente.</p>
 
-<!-- ===================== 5 ===================== -->
 <h2>5. Discusión general</h2>
 <p>Mirando los resultados en conjunto, lo primero que salta es que las cinco inyecciones venían del mismo error (pegar lo que escribe el usuario dentro del SQL) y que una sola práctica, las consultas preparadas, las cerró todas. Eso ordena las prioridades: antes de ponerse con controles finos, lo que más rinde es parametrizar todas las consultas, porque de un golpe tapa los cinco vectores.</p>
 <p>Lo segundo es que no todo es consulta preparada. <code>pedido.php</code> lo deja claro: el fraude del precio y la posibilidad de pedir sin sesión son fallos de diseño, y la cantidad gigante de la pregunta 3 es un fallo de reglas de negocio. Ninguno de esos lo arregla la parametrización; hacen falta controles aparte (reconsultar el precio, exigir sesión, validar rangos). Por eso la defensa en profundidad tiene sentido: cada capa cubre algo que las otras no.</p>
 <p>Si alguien objetara que con las consultas preparadas ya estaría todo, la respuesta está en la propia matriz y en la pregunta 3: la inyección sí quedó cerrada y verificada, pero el total truncado demuestra que quedan problemas que la parametrización no toca. Reconocerlo es parte del trabajo; declarar «ya es seguro» sería justo el tipo de conclusión exagerada que la guía pide evitar.</p>
 
-<!-- ===================== 6 ===================== -->
 <h2>6. Conclusiones</h2>
 <ul>
   <li>Se implementaron las tres capas y se verificó con pruebas repetidas que los seis payloads de la Clase 6 dejaron de funcionar sobre el código corregido: los seis quedan en «No» en la matriz de la Sección 4.4 (objetivos 1, 2 y 3).</li>
@@ -267,7 +259,6 @@
   <li>La pregunta 3 dejó un hallazgo concreto que confirma el punto anterior: la consulta preparada no frena una cantidad de 999.999.999, que pasa la validación de tipo y termina guardando un total truncado; eso exige una validación de negocio adicional.</li>
 </ul>
 
-<!-- ===================== 7 ===================== -->
 <h2>7. Bibliografía</h2>
 <p>International Organization for Standardization. (2013). <i>ISO/IEC 27002:2013. Information technology, Security techniques, Code of practice for information security controls</i>. ISO.</p>
 <p>OWASP Foundation. (s.f.). <i>OWASP Top 10</i>. Recuperado el 20 de octubre de 2026 de https://owasp.org/www-project-top-ten/</p>
@@ -275,7 +266,6 @@
 <p>The PHP Group. (s.f.). <i>Sentencias preparadas con MySQLi. Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/mysqli.quickstart.prepared-statements.php</p>
 <p>The PHP Group. (s.f.). <i>PDO::prepare. Manual de PHP</i>. Recuperado el 20 de octubre de 2026 de https://www.php.net/manual/es/pdo.prepare.php</p>
 
-<!-- ===================== 8 ===================== -->
 <h2>8. Anexos</h2>
 <p><b>Anexo A. Evidencias complementarias.</b> Las nueve figuras del informe salen de las pruebas reales ejecutadas el 20/10/2026; las imágenes a resolución completa quedan en la carpeta <code>tareas/producto2-imagenes/</code> del repositorio, organizadas por componente (prefijo <code>antes-</code> y <code>despues-</code>).</p>
 <p><b>Anexo B. Resumen de los cambios por archivo.</b> conexion.php: usuario restringido en vez de root. registro.php: lista blanca + INSERT preparado. login.php: SELECT preparado por usuario y verificación de clave en PHP. buscar_producto.php: PDO con parámetro nombrado y manejo de excepciones. pedido.php: validación de tipo, reconsulta del precio y INSERT preparado.</p>
@@ -283,9 +273,6 @@
 
 <h4>conexion.php</h4>
 <pre id="c-conexion">&lt;?php
-// Capa 1 - Minimo privilegio: la app ya no se conecta como root.
-// Se usa el usuario 'negocioseguro_app', que solo tiene SELECT, INSERT y UPDATE
-// sobre la base compraseguras (no puede DROP, ALTER ni DELETE).
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -298,7 +285,6 @@ $db   = "compraseguras";
 $conn = new mysqli($host, $user, $pass, $db);
 
 if ($conn-&gt;connect_error) {
-    // No se muestra el detalle tecnico al usuario (eso seria A05/A09).
     die("Error critico de conexion a la base de datos.");
 }
 ?&gt;</pre>
@@ -306,23 +292,17 @@ if ($conn-&gt;connect_error) {
 <pre id="c-registro">&lt;?php
 include 'conexion.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario = trim($_POST['usuario']); // quita espacios al inicio/final
+    $usuario = trim($_POST['usuario']);
     $clave   = $_POST['clave'];
 
-    // Capa 2 - Validacion por lista blanca: solo letras, numeros y guion bajo,
-    // entre 3 y 20 caracteres. Un valor como admin'-- se rechaza aqui mismo,
-    // antes de tocar la base de datos.
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $usuario)) {
         die("Nombre de usuario invalido. Use solo letras, numeros y guion bajo (3 a 20 caracteres).");
     }
 
-    // Politica de longitud minima de la clave (Clase 5).
     if (strlen($clave) &lt; 8) {
         die("La clave debe tener al menos 8 caracteres.");
     }
 
-    // Capa 3 - Consulta preparada con MySQLi: los datos van por marcadores (?),
-    // nunca concatenados dentro del SQL.
     $stmt = $conn-&gt;prepare("INSERT INTO usuarios (usuario, clave) VALUES (?, ?)");
     $stmt-&gt;bind_param("ss", $usuario, $clave);
 
@@ -347,9 +327,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = $_POST['usuario'];
     $clave   = $_POST['clave'];
 
-    // Capa 3 - Consulta preparada con MySQLi. Solo se consulta por el usuario,
-    // nunca por la clave; la verificacion de la clave se hace despues en PHP.
-    // Asi un texto como ' OR '1'='1 se busca como un nombre de usuario literal.
     $stmt = $conn-&gt;prepare("SELECT * FROM usuarios WHERE usuario = ?");
     $stmt-&gt;bind_param("s", $usuario);
     $stmt-&gt;execute();
@@ -360,7 +337,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($clave === $fila['clave']) {
             $_SESSION['usuario_id'] = $fila['id'];
             $_SESSION['usuario']    = $fila['usuario'];
-            // htmlspecialchars al imprimir el nombre, para no dar pie a XSS.
             echo "Bienvenido, " . htmlspecialchars($fila['usuario']) . ". Acceso concedido.";
         } else {
             echo "Usuario o clave incorrectos.";
@@ -383,8 +359,6 @@ $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
 
 if ($busqueda !== '') {
     try {
-        // Capa 3 con PDO. Se conecta con el usuario restringido de la Capa 1
-        // (no con root) y se activan las excepciones para manejarlas nosotros.
         $pdo = new PDO(
             "mysql:host=localhost;dbname=compraseguras;charset=utf8mb4",
             "negocioseguro_app",
@@ -392,7 +366,6 @@ if ($busqueda !== '') {
         );
         $pdo-&gt;setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Marcador de posicion con nombre. El % se agrega en el valor, no en el SQL.
         $stmt = $pdo-&gt;prepare("SELECT nombre, precio FROM productos WHERE nombre LIKE :busqueda");
         $stmt-&gt;bindValue(':busqueda', '%' . $busqueda . '%');
         $stmt-&gt;execute();
@@ -401,8 +374,6 @@ if ($busqueda !== '') {
             echo htmlspecialchars($fila['nombre']) . " - $" . htmlspecialchars($fila['precio']) . "&lt;br&gt;";
         }
     } catch (PDOException $e) {
-        // Nunca mostrar $e-&gt;getMessage() al usuario: eso reabriria la inyeccion
-        // basada en errores de la Clase 6.
         echo "Ocurrio un error al procesar la busqueda. Intente nuevamente.";
     }
 }
@@ -420,20 +391,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cantidad    = $_POST['cantidad'] ?? '';
     $usuario_id  = $_SESSION['usuario_id'] ?? 0;
 
-    // Exige sesion iniciada (cierra el pedido con usuario 0, A01).
     if ($usuario_id === 0) {
         die("Error: Debe iniciar sesion para realizar un pedido.");
     }
 
-    // Validacion de tipo: producto_id y cantidad deben ser enteros positivos.
     if (!filter_var($producto_id, FILTER_VALIDATE_INT) ||
         !filter_var($cantidad, FILTER_VALIDATE_INT) ||
         $cantidad &lt;= 0) {
         die("Error: Los datos del pedido son invalidos.");
     }
 
-    // Defensivo: el precio NUNCA se toma del formulario. Se reconsulta en la BD
-    // por el id del producto, con consulta preparada.
     $stmt_precio = $conn-&gt;prepare("SELECT precio FROM productos WHERE id = ?");
     $stmt_precio-&gt;bind_param("i", $producto_id);
     $stmt_precio-&gt;execute();
@@ -448,7 +415,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total       = $precio_real * $cantidad;
     $stmt_precio-&gt;close();
 
-    // Registro del pedido con consulta preparada.
     $stmt_pedido = $conn-&gt;prepare("INSERT INTO pedidos (usuario_id, producto_id, cantidad, total) VALUES (?, ?, ?, ?)");
     $stmt_pedido-&gt;bind_param("iiid", $usuario_id, $producto_id, $cantidad, $total);
 

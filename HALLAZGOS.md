@@ -1,4 +1,4 @@
-# Análisis de hallazgos — compraseguras
+# Análisis de hallazgos | compraseguras
 
 Revisión rápida de los archivos PHP y la base de datos. Enfoque en seguridad
 básica, no exhaustivo.
