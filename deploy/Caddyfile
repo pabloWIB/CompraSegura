@@ -1,0 +1,4 @@
+negocioseguro.wib.digital {
+	redir / /login.php
+	reverse_proxy app:80
+}

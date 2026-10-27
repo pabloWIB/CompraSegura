@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    network_mode: none
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - datos:/var/lib/mysql
+      - socket:/run/mysqld
+      - ../compraseguras.sql:/docker-entrypoint-initdb.d/1-base.sql:ro
+      - ./usuario.sql:/docker-entrypoint-initdb.d/2-usuario.sql:ro
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - web
+    volumes:
+      - socket:/run/mysqld
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - web
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_datos:/data
+volumes:
+  datos:
+  socket:
+  caddy_datos:
+networks:
+  web:
